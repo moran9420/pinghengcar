@@ -1,78 +1,205 @@
-
+#include "pid.h"
 #include "menu.h"
 #include "key.h"
 #include "zf_device_oled.h"
 #include <stdio.h>
+#include "flash.h"
 
-/* 页面编号（直接 #define） */
-#define PAGE_MAIN   0
-#define PAGE_MODE   1
-#define PAGE_PID    2   // 只是占位，不放参数
 
-int menu_mode   = 1;
-int menu_page   = PAGE_MAIN;
-int menu_cursor = 0;
 
+/* ================= 菜单状态变量 ================= */
+unsigned char currentmenu = 0;   // 0主菜单 1模式 2PID环 3PID参数
+unsigned char biao = 0;          // 光标
+unsigned char pid_item = 0;      // 0=KP 1=KI 2=KD
+unsigned char pid_loop = 0;      // 0角度 1速度 2位置
+
+unsigned char carmode = 1;
+unsigned char flagmenu = 1;      // 上电先刷一次
+
+/* ================= 初始化 ================= */
 void menu_init(void)
 {
     oled_init();
     oled_clear();
+    flagmenu = 1;
 }
 
-void menu_task(void)
+/* ================= 按键处理 ================= */
+void menu_key_task(void)
 {
-    int key = key_get_event();
+    unsigned char key = key_get_event();
+    if(key == KEY_NONE) return;
 
-    /* ===== 按键处理 ===== */
-    if(key == KEY_UP)
+    /* ---------- 主菜单 ---------- */
+    if(currentmenu == 0)
     {
-        if(menu_cursor > 0) menu_cursor--;
-    }
-    else if(key == KEY_DOWN)
-    {
-        menu_cursor++;
-    }
-    else if(key == KEY_OK)
-    {
-        if(menu_page == PAGE_MAIN)
+        if(key == KEY_UP)
         {
-            if(menu_cursor == 0) menu_page = PAGE_MODE;
-            if(menu_cursor == 1) menu_page = PAGE_PID;
-            menu_cursor = 0;
+            if(biao == 0) biao = 1;
+            else biao--;
+            flagmenu = 1;
         }
-        else if(menu_page == PAGE_MODE)
+        else if(key == KEY_DOWN)
         {
-            menu_mode = menu_cursor + 1;   // 1~5
+            biao = (biao + 1) % 2;
+            flagmenu = 1;
         }
-    }
-    else if(key == KEY_BACK)
-    {
-        menu_page = PAGE_MAIN;
-        menu_cursor = 0;
+        else if(key == KEY_OK)
+        {
+            if(biao == 0) currentmenu = 1;   // MODE
+            if(biao == 1) currentmenu = 2;   // PID
+            biao = 0;
+            flagmenu = 1;
+        }
     }
 
-    /* ===== OLED 显示 ===== */
+    /* ---------- MODE 菜单 ---------- */
+    else if(currentmenu == 1)
+    {
+        if(key == KEY_BACK)
+        {
+            currentmenu = 0;
+            biao = 0;
+            flagmenu = 1;
+			carmode=1;
+        }
+        else if(key == KEY_UP)
+        {
+            if(biao == 0) biao = 4;
+            else biao--;
+            flagmenu = 1;
+        }
+        else if(key == KEY_DOWN)
+        {
+            biao = (biao + 1) % 5;
+            flagmenu = 1;
+        }
+        else if(key == KEY_OK)
+        {
+            carmode = biao + 1;   // 1~5
+            flagmenu = 1;
+        }
+    }
+
+    /* ---------- PID 环选择 ---------- */
+    else if(currentmenu == 2)
+    {
+        if(key == KEY_BACK)
+        {
+            currentmenu = 0;
+            biao = 0;
+            flagmenu = 1;
+        }
+        else if(key == KEY_UP)
+        {
+            if(biao == 0) biao = 2;
+            else biao--;
+            flagmenu = 1;
+        }
+        else if(key == KEY_DOWN)
+        {
+            biao = (biao + 1) % 3;
+            flagmenu = 1;
+        }
+        else if(key == KEY_OK)
+        {
+            pid_loop = biao;   // 0角度 1速度 2位置
+            pid_item = 0;
+            currentmenu = 3;
+            flagmenu = 1;
+        }
+    }
+
+    /* ---------- PID 参数调整 ---------- */
+    else if(currentmenu == 3)
+    {
+        piddef *pid;
+
+        if(pid_loop == 0) pid = &anglepid;
+        else if(pid_loop == 1) pid = &speedpid;
+        else pid = &positionpid;
+		
+		if(key ==  KEY_LONG_OK)
+{
+    flash_param_save();
+    flagmenu = 1;   // 让 OLED 提示
+}
+
+
+        if(key == KEY_BACK)
+        {
+            currentmenu = 2;
+            biao = pid_loop;
+            flagmenu = 1;
+        }
+        else if(key == KEY_OK)
+        {
+            pid_item = (pid_item + 1) % 3;
+            flagmenu = 1;
+        }
+        else if(key == KEY_UP)
+        {
+            if(pid_item == 0) pid->kp += 0.1f;
+            if(pid_item == 1) pid->ki += 0.01f;
+            if(pid_item == 2) pid->kd += 0.1f;
+            flagmenu = 1;
+        }
+        else if(key == KEY_DOWN)
+        {
+            if(pid_item == 0) pid->kp -= 0.1f;
+            if(pid_item == 1) pid->ki -= 0.01f;
+            if(pid_item == 2) pid->kd -= 0.1f;
+            flagmenu = 1;
+        }
+    }
+}
+
+/* ================= OLED 显示 ================= */
+void menu_display(void)
+{
+    char buf[16];
+    piddef *pid;
+
+    if(flagmenu == 0) return;
+    flagmenu = 0;
+
     oled_clear();
 
-    if(menu_page == PAGE_MAIN)
+    if(currentmenu == 0)
     {
-        oled_show_string(0,0,"> MAIN");
-        oled_show_string(0,2,menu_cursor==0?"> MODE":"  MODE");
-        oled_show_string(0,3,menu_cursor==1?"> PID ":"  PID ");
+        oled_show_string(1,1,"MODE");
+        oled_show_string(1,2,"PID");
+        oled_show_string(0,biao+1,">");
     }
-    else if(menu_page == PAGE_MODE)
+    else if(currentmenu == 1)
     {
-        oled_show_string(0,0,"> MODE");
         for(int i=0;i<5;i++)
         {
-            char buf[12];
-            sprintf(buf,"%c MODE %d",(menu_cursor==i)?'>':' ',i+1);
-            oled_show_string(0,i+2,buf);
+            sprintf(buf,"MODE %d",i+1);
+            oled_show_string(2,i+1,buf);
         }
+        oled_show_string(0,biao+1,">");
     }
-    else if(menu_page == PAGE_PID)
+    else if(currentmenu == 2)
     {
-        oled_show_string(0,0,"> PID PAGE");
-        oled_show_string(0,3,"(no param here)");
+        oled_show_string(1,1,"ANGLE");
+        oled_show_string(1,2,"SPEED");
+        oled_show_string(1,3,"POSITION");
+        oled_show_string(0,biao+1,">");
+    }
+    else if(currentmenu == 3)
+    {
+        if(pid_loop == 0) pid = &anglepid;
+        else if(pid_loop == 1) pid = &speedpid;
+        else pid = &positionpid;
+
+        sprintf(buf,"KP %.2f",pid->kp);
+        oled_show_string(1,1,buf);
+        sprintf(buf,"KI %.2f",pid->ki);
+        oled_show_string(1,2,buf);
+        sprintf(buf,"KD %.2f",pid->kd);
+        oled_show_string(1,3,buf);
+
+        oled_show_string(0,pid_item+1,">");
     }
 }

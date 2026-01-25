@@ -13,6 +13,11 @@ int key_get_event(void)
         key_clear_state(KEY_2);
         return KEY_DOWN;
     }
+	if(key_get_state(KEY_3) == KEY_LONG_PRESS)
+    {
+        key_clear_state(KEY_3);
+        return  KEY_LONG_OK;
+    }
     if(key_get_state(KEY_3) == KEY_SHORT_PRESS)
     {
         key_clear_state(KEY_3);
@@ -23,5 +28,6 @@ int key_get_event(void)
         key_clear_state(KEY_4);
         return KEY_BACK;
     }
+	
     return KEY_NONE;
 }

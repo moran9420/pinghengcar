@@ -1,27 +1,66 @@
 #include "key.h"
 #include "zf_device_key.h"
+#include "zf_common_clock.h"
+#include "zf_common_debug.h"
+#include "zf_driver_gpio.h"
+#include "zf_driver_timer.h"
+#include "zf_driver_pwm.h"
+#include "motor.h"
+int16_t targetspeed1=0;
+int16_t targetspeed2=0;
+int16_t targetangle=0;
 
-int key_get_event(void)
+
+#define MOTOR_L_DIR_PIN    A0
+#define MOTOR_L_PWM_PIN    TIM5_PWM_CH2_A1
+
+
+#define MOTOR_R_DIR_PIN    A2
+#define MOTOR_R_PWM_PIN    TIM5_PWM_CH4_A3
+
+
+static void motor_set(int dir_pin, pwm_channel_enum pwm_pin, int speed)
 {
-    if(key_get_state(KEY_1) == KEY_SHORT_PRESS)
+    if(speed > MOTOR_PWM_MAX)
+        speed = MOTOR_PWM_MAX;
+    if(speed < -MOTOR_PWM_MAX)
+        speed = -MOTOR_PWM_MAX;
+
+    if(speed >= 0)
     {
-        key_clear_state(KEY_1);
-        return KEY_UP;
+        gpio_set_level(dir_pin, GPIO_LOW);     // 正转
+        pwm_set_duty(pwm_pin, speed);
     }
-    if(key_get_state(KEY_2) == KEY_SHORT_PRESS)
+    else
     {
-        key_clear_state(KEY_2);
-        return KEY_DOWN;
+        gpio_set_level(dir_pin, GPIO_HIGH);    // 反转
+        pwm_set_duty(pwm_pin, -speed);
     }
-    if(key_get_state(KEY_3) == KEY_SHORT_PRESS)
-    {
-        key_clear_state(KEY_3);
-        return KEY_OK;
-    }
-    if(key_get_state(KEY_4) == KEY_SHORT_PRESS)
-    {
-        key_clear_state(KEY_4);
-        return KEY_BACK;
-    }
-    return KEY_NONE;
+}
+
+
+void motor_init(void)
+{
+
+    gpio_init(MOTOR_L_DIR_PIN, GPO, GPIO_LOW, GPO_PUSH_PULL);
+    gpio_init(MOTOR_R_DIR_PIN, GPO, GPIO_LOW, GPO_PUSH_PULL);
+
+    pwm_init(MOTOR_L_PWM_PIN, MOTOR_PWM_FREQ, 0);
+    pwm_init(MOTOR_R_PWM_PIN, MOTOR_PWM_FREQ, 0);
+}
+
+void motor_set_left(int speed)
+{
+    motor_set(MOTOR_L_DIR_PIN, MOTOR_L_PWM_PIN, speed);
+}
+
+void motor_set_right(int speed)
+{
+    motor_set(MOTOR_R_DIR_PIN, MOTOR_R_PWM_PIN, speed);
+}
+
+void motor_stop(void)
+{
+    pwm_set_duty(MOTOR_L_PWM_PIN, 0);
+    pwm_set_duty(MOTOR_R_PWM_PIN, 0);
 }

@@ -9,5 +9,5 @@ int key_get_event(void);
 #define KEY_DOWN   2
 #define KEY_OK     3
 #define KEY_BACK   4
-
+#define KEY_LONG_OK  5  // 新增：OK 长按
 #endif
