@@ -1,31 +1,31 @@
-#include "mm32_device.h"                // Device header
+        // Device header
 #include "pid.h"// Device header
-piddef positionpid;
+piddef turnpid;
 piddef speedpid;
 piddef anglepid;
 void pid_init(void)
 {
 speedpid.jifen=0;
-speedpid.jifenxianzhi=100;
+speedpid.jifenxianzhi=10000;
 	speedpid.kp=3.1f;
 	speedpid.ki=0.3f;
 	speedpid.kd=0.0f;
 	speedpid.lasterror=0;
 	speedpid.outxianzhi=99;
-	positionpid.jifen=0;
-positionpid.jifenxianzhi=100;
-	positionpid.kp=1.2f;
-positionpid.ki=0.01f;
-positionpid.kd=0.0f;
-	positionpid.lasterror=0;
-positionpid.outxianzhi=999;
+	turnpid.jifen=0;
+turnpid.jifenxianzhi=6000;
+	turnpid.kp=1.2f;
+turnpid.ki=0.01f;
+turnpid.kd=0.0f;
+	turnpid.lasterror=0;
+turnpid.outxianzhi=5000;
 	    anglepid.jifen = 0;
-    anglepid.jifenxianzhi = 300;
+    anglepid.jifenxianzhi = 30;
     anglepid.kp = 0;     
     anglepid.ki = 0;
     anglepid.kd = 0;
     anglepid.lasterror = 0;
-    anglepid.outxianzhi = 1000;
+    anglepid.outxianzhi = 40;
 }
 
 int16_t pidcalculate(piddef*pid,float target,float actual)
@@ -50,9 +50,9 @@ int16_t pidspeedcal(float targetspeed,float actualspeed)
 {
 return pidcalculate(&speedpid,targetspeed,actualspeed);
 }
-int16_t pidposcal(float targetpos,float actualpos)
+int16_t pidturncal(float targetturn,float actualturn)
 {
-return pidcalculate(&positionpid,targetpos,actualpos);
+return pidcalculate(&turnpid,targetturn,actualturn);
 }
 int16_t pidangcal(float targetang,float actualang)
 {

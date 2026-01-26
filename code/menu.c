@@ -53,7 +53,6 @@ void menu_key_task(void)
         }
     }
 
-    /* ---------- MODE 菜单 ---------- */
     else if(currentmenu == 1)
     {
         if(key == KEY_BACK)
@@ -61,7 +60,7 @@ void menu_key_task(void)
             currentmenu = 0;
             biao = 0;
             flagmenu = 1;
-			carmode=1;
+			
         }
         else if(key == KEY_UP)
         {
@@ -117,7 +116,7 @@ void menu_key_task(void)
 
         if(pid_loop == 0) pid = &anglepid;
         else if(pid_loop == 1) pid = &speedpid;
-        else pid = &positionpid;
+        else pid = &turnpid;
 		
 		if(key ==  KEY_LONG_OK)
 {
@@ -191,7 +190,7 @@ void menu_display(void)
     {
         if(pid_loop == 0) pid = &anglepid;
         else if(pid_loop == 1) pid = &speedpid;
-        else pid = &positionpid;
+        else pid = &turnpid;
 
         sprintf(buf,"KP %.2f",pid->kp);
         oled_show_string(1,1,buf);

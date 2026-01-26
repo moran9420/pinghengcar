@@ -6,9 +6,13 @@
 #include "zf_driver_timer.h"
 #include "zf_driver_pwm.h"
 #include "motor.h"
-int16_t targetspeed1=0;
-int16_t targetspeed2=0;
-int16_t targetangle=0;
+float targetspeed=0;
+float targetangle=0;
+float targetturn=0;
+float actualspeed=0;
+float actualangle=0;
+float actualturn=0;
+
 
 
 #define MOTOR_L_DIR_PIN    A0
@@ -63,4 +67,33 @@ void motor_stop(void)
 {
     pwm_set_duty(MOTOR_L_PWM_PIN, 0);
     pwm_set_duty(MOTOR_R_PWM_PIN, 0);
+}
+void Car_Start(void)
+{
+   
+    if(targetangle > -2.0f)
+    {
+        targetangle -= 0.02f;
+        if(targetangle < -2.0f)
+            targetangle = -2.0f;
+    }
+}
+void Car_Stop(void)
+{	
+    if(targetangle < 0.0f)
+    {
+        targetangle += 0.03f;
+        if(targetangle > 0.0f)
+            targetangle = 0.0f;
+    }
+}
+void Car_back(void)
+{
+   
+    if(targetangle <2.0f)
+    {
+        targetangle += 0.02f;
+        if(targetangle >2.0f)
+            targetangle = 2.0f;
+    }
 }

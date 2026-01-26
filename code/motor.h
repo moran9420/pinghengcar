@@ -1,9 +1,13 @@
 #ifndef MOTOR_H
 #define MOTOR_H
 #include <stdint.h>
-extern int16_t targetspeed1;
-extern int16_t targetspeed2;
-extern int16_t targetangle;
+extern float targetspeed;
+extern float targetangle;
+extern float targetturn;
+extern float actualspeed;
+extern float actualangle;
+extern float actualturn;
+
 #include "zf_driver_pwm.h"
 #include "zf_driver_gpio.h"
 
@@ -22,5 +26,8 @@ void motor_set_right(int speed);
 
 // 停车
 void motor_stop(void);
+void Car_Start(void);
+void Car_Stop(void);
+void Car_back(void);
 
 #endif

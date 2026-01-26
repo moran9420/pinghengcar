@@ -1,22 +1,9 @@
-#ifndef __PID_H
-#define __PID_H
-#include <stdint.h>
+#ifndef _ANGLE_H_
+#define _ANGLE_H_
 
-typedef struct
-{
-float kp;
-float ki;
-float kd;
-float jifen;
-float lasterror;
-float jifenxianzhi;
-float outxianzhi;
-}piddef;
-extern piddef speedpid;
-extern piddef positionpid;
-extern piddef anglepid;
-void pid_init(void);
-int16_t pidcalculate(piddef*pid,float target,float actual);
-int16_t pidspeedcal(float targetspeed,float actualspeed);
-int16_t pidposcal(float targetpos,float actualpos);
+extern float CarAngle;
+
+void Angle_Init(void);
+void Angle_Update(void);   // 每 10ms 调一次
+
 #endif

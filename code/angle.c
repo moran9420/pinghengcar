@@ -1,64 +1,38 @@
 #include "mm32_device.h"                // Device header
-#include "pid.h"// Device header
-piddef positionpid;
-piddef speedpid;
-piddef anglepid;
-void pid_init(void)
+#include "angle.h"
+#include "zf_device_mpu6050.h"
+#include <math.h>
+
+float CarAngle = 0;
+
+static int16_t ax, ay, az, gx, gy, gz;
+
+#define GYRO_OFFSET      16
+#define ANGLE_ACC_OFFSET 0.5f
+#define DT               0.01f
+#define ALPHA            0.01f
+
+void Angle_Init(void)
 {
-speedpid.jifen=0;
-speedpid.jifenxianzhi=100;
-	speedpid.kp=3.1f;
-	speedpid.ki=0.3f;
-	speedpid.kd=0.0f;
-	speedpid.lasterror=0;
-	speedpid.outxianzhi=99;
-	positionpid.jifen=0;
-positionpid.jifenxianzhi=100;
-	positionpid.kp=1.2f;
-positionpid.ki=0.01f;
-positionpid.kd=0.0f;
-	positionpid.lasterror=0;
-positionpid.outxianzhi=999;
-	    anglepid.jifen = 0;
-    anglepid.jifenxianzhi = 300;
-    anglepid.kp = 0;     
-    anglepid.ki = 0;
-    anglepid.kd = 0;
-    anglepid.lasterror = 0;
-    anglepid.outxianzhi = 1000;
+    CarAngle = 0;
 }
 
-int16_t pidcalculate(piddef*pid,float target,float actual)
+void Angle_Update(void)
 {
-float error=target-actual;
-	float out;
-	pid->jifen+=error;
-	if(pid->jifen>pid->jifenxianzhi)
-	{pid->jifen=pid->jifenxianzhi;}
-	if(pid->jifen<-pid->jifenxianzhi)
-	{pid->jifen=-pid->jifenxianzhi;}
-	float dao=error-pid->lasterror;
-	out=pid->kp*error+pid->ki*pid->jifen+pid->kd*dao;
-	if(out>pid->outxianzhi)
-	{out=pid->outxianzhi;}
-	if(out<-pid->outxianzhi)
-	{out=-pid->outxianzhi;}
-	pid->lasterror=error;
-	return out;
-}
-int16_t pidspeedcal(float targetspeed,float actualspeed)
-{
-return pidcalculate(&speedpid,targetspeed,actualspeed);
-}
-int16_t pidposcal(float targetpos,float actualpos)
-{
-return pidcalculate(&positionpid,targetpos,actualpos);
-}
-int16_t pidangcal(float targetang,float actualang)
-{
-return pidcalculate(&anglepid,targetang,actualang);
-}
+    mpu6050_get_acc();
+    mpu6050_get_gyro();
+	ax=mpu6050_acc_x;
+	ay=mpu6050_acc_y;
+	az=mpu6050_acc_z;
+	gx=mpu6050_gyro_x;
+	gy=mpu6050_gyro_y;
+	gz=mpu6050_gyro_z;
+    gy -= GYRO_OFFSET;
 
+    float angle_acc = -atan2((float)ax, (float)az) * 57.29578f;
+    angle_acc += ANGLE_ACC_OFFSET;
 
+    float angle_gyro = CarAngle + gy / 32768.0f * 2000.0f * DT;
 
-
+    CarAngle = ALPHA * angle_acc + (1.0f - ALPHA) * angle_gyro;
+}
