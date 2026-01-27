@@ -2,12 +2,15 @@
 #include "zf_driver_gpio.h"
 #include "TCRT.h"
 #include "motor.h"
+#include "turn.h"
+#include "math.h"
 
 static volatile uint8_t R2_raw = 0;
 static volatile uint8_t R1_raw = 0;
 static volatile uint8_t L1_raw = 0;
 static volatile uint8_t L2_raw = 0;
 uint16_t mode2flag=0;
+uint16_t mode3flag=0;
 //红外循迹模块初始化
 void TCRT_Init(void)
 {
@@ -136,56 +139,113 @@ void Mode2_Switch(void)
 }
 
 
-static int8_t  S3 = 0;
-static int16_t mode3_laps = 0;
-
+volatile static int8_t  S3 = 0;
+volatile static uint16_t straghtflag3[4]={1,1,1,1};
+volatile static uint16_t straghtflag2[4]={1,1,1,1};
+volatile static uint16_t i=0;
 /* 模式3*/
 void Mode3_Switch(void)
 {
     static uint32_t cnt = 0;
-
-    if(S3 == 0)
-    {
+	static uint16_t count1=0;
+	if(count1<=3)
+	{ if(S3 == 0)
+    {	
+		if(straghtflag3[i]==1)
+		{turn_in_place_start(90);
+		targetturn=0;
+			straghtflag3[i]=0;
+		}
+		Car_Start();
         if(R1_raw||R2_raw||L1_raw||L2_raw)
         {
 			cnt++;
             if(cnt > Black_CNT)
             {
-                Beep_Once();
+              beep_start(200);
                 S3 = 1;
                 cnt = 0;
             }
         } else cnt = 0;
     }
     else if(S3 == 1)
-    {
+    {	
         if(!(R1_raw||R2_raw||L1_raw||L2_raw))
-        {
+        {	
 			cnt++;
             if(cnt > White_CNT)
             {
-                Beep_Once();
-                S3 = 10;
+                beep_start(200);
+                S3 = 2;
                 cnt = 0;
             }
         } else cnt = 0;
     }
-    else if(S3 == 10)//转向子状态
+    else if(S3 == 2)
     {		
-       
-        mode3_laps++;
-
-        if(mode3_laps >= MODE3_TARGET)
-        {
-           Car_Stop();
-			last_error = 0;
-            S3 = 4;
-        }
-        else
-        {
-            S3 = 0;
-        }
+       Car_Stop();
+		if (fabsf(actualangle) < 0.5f)
+		{
+		S3=3;
+		}        
     }
+	else if(S3 == 3)
+    {	
+		
+		if(straghtflag2[i]==1)
+		{turn_in_place_start(90);	
+     
+		targetturn=0;
+			straghtflag2[i]=0;
+		}
+		  Car_Start();
+		if(R1_raw||R2_raw||L1_raw||L2_raw)
+        {
+			cnt++;
+            if(cnt > Black_CNT)
+            {
+              beep_start(200);
+                S3 = 4;
+                cnt = 0;
+            }
+        } else cnt = 0;
+        
+	}
+	 else if(S3 == 4)
+    {	
+        if(!(R1_raw||R2_raw||L1_raw||L2_raw))
+        {	
+			cnt++;
+            if(cnt > White_CNT)
+            {
+                beep_start(200);
+                S3 = 5;
+                cnt = 0;
+            }
+        } else cnt = 0;
+    }
+    else if(S3 == 5)
+    {		
+       Car_Stop();
+		if (fabsf(actualangle) < 0.5f)
+		{
+		count1++;			
+			S3=0;
+			i++;
+		}        
+    }
+	
+}
+if (count1 >= 4)
+{
+    for (int k = 0; k < 4; k++)
+    {
+        straghtflag2[k] = 1;
+        straghtflag3[k] = 1;
+    }
+    count1 = 0;
+    i = 0;
+}	
 }
 
 

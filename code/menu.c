@@ -166,9 +166,9 @@ void menu_display(void)
 
     if(currentmenu == 0)
     {
-        oled_show_string(1,1,"MODE");
-        oled_show_string(1,2,"PID");
-        oled_show_string(0,biao+1,">");
+        oled_show_string(2,1,"MODE");
+        oled_show_string(2,2,"PID");
+        oled_show_string(1,biao+1,">");
     }
     else if(currentmenu == 1)
     {
@@ -177,14 +177,14 @@ void menu_display(void)
             sprintf(buf,"MODE %d",i+1);
             oled_show_string(2,i+1,buf);
         }
-        oled_show_string(0,biao+1,">");
+        oled_show_string(1,biao+1,">");
     }
     else if(currentmenu == 2)
     {
-        oled_show_string(1,1,"ANGLE");
-        oled_show_string(1,2,"SPEED");
-        oled_show_string(1,3,"POSITION");
-        oled_show_string(0,biao+1,">");
+        oled_show_string(2,1,"ANGLE");
+        oled_show_string(2,2,"SPEED");
+        oled_show_string(2,3,"POSITION");
+        oled_show_string(1,biao+1,">");
     }
     else if(currentmenu == 3)
     {
@@ -193,12 +193,12 @@ void menu_display(void)
         else pid = &turnpid;
 
         sprintf(buf,"KP %.2f",pid->kp);
-        oled_show_string(1,1,buf);
+        oled_show_string(2,1,buf);
         sprintf(buf,"KI %.2f",pid->ki);
-        oled_show_string(1,2,buf);
+        oled_show_string(2,2,buf);
         sprintf(buf,"KD %.2f",pid->kd);
-        oled_show_string(1,3,buf);
+        oled_show_string(2,3,buf);
 
-        oled_show_string(0,pid_item+1,">");
+        oled_show_string(1,pid_item+1,">");
     }
 }
