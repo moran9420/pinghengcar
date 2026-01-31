@@ -64,8 +64,8 @@ void turn_in_place_step(void)
     }
 
  
-    motor_set_left (speedout - turnout);
-    motor_set_right(speedout + turnout);
+    motor_set_left (angleout - turnout);
+    motor_set_right(angleout + turnout);
 }
 
 

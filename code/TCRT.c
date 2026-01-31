@@ -72,7 +72,8 @@ void Mode2_Switch(void)
     static uint32_t cnt = 0;
 
     if(S2 == 0)
-    {	static uint16_t straghtflag1=1;
+    {	targetspeed=4000;
+		static uint16_t straghtflag1=1;
 		if(straghtflag1==1)
 		{
 		targetturn=0;
@@ -129,7 +130,7 @@ void Mode2_Switch(void)
         {cnt++;
             if(cnt > White_CNT)
             {
-				Car_Stop();
+				targetspeed=0;
                  beep_start(200);
                 S2 = 4;
 				mode2flag=0;
@@ -156,7 +157,7 @@ void Mode3_Switch(void)
 		targetturn=0;
 			straghtflag3[i]=0;
 		}
-		Car_Start();
+		targetspeed=3000;
         if(R1_raw||R2_raw||L1_raw||L2_raw)
         {
 			cnt++;
@@ -183,7 +184,7 @@ void Mode3_Switch(void)
     }
     else if(S3 == 2)
     {		
-       Car_Stop();
+       targetspeed=0;
 		if (fabsf(actualangle) < 0.5f)
 		{
 		S3=3;
@@ -198,7 +199,7 @@ void Mode3_Switch(void)
 		targetturn=0;
 			straghtflag2[i]=0;
 		}
-		  Car_Start();
+		targetspeed=4000;
 		if(R1_raw||R2_raw||L1_raw||L2_raw)
         {
 			cnt++;
@@ -226,7 +227,7 @@ void Mode3_Switch(void)
     }
     else if(S3 == 5)
     {		
-       Car_Stop();
+     targetspeed=0;
 		if (fabsf(actualangle) < 0.5f)
 		{
 		count1++;			

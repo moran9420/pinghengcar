@@ -2,6 +2,8 @@
 #include "zf_driver_uart.h"
 #include "pid.h"
 #include "motor.h"
+#include "vofa_firewater.h"
+
 /* ---------------- 状态机枚举 ---------------- */
 typedef enum
 {
@@ -68,6 +70,7 @@ void bluetooth_cmd_parse(char *cmd)
             if (strcmp(name, "angle.kp") == 0)
             {
                 anglepid.kp = value;
+								firewater_send_floats(2, anglepid.kp, 4.0f);
                  // 保持您原有的反馈
             }
             else if (strcmp(name, "angle.ki") == 0)
@@ -114,6 +117,11 @@ void bluetooth_cmd_parse(char *cmd)
                 turnpid.ki= value;
               
             }
+						else if (strcmp(name, "targetangle") == 0)
+            {
+                targetangle= value;
+								firewater_send_floats(2, targetangle, 666.0f);
+            }
         }
         return; // 解析成功参数后直接返回
     }
@@ -122,7 +130,7 @@ void bluetooth_cmd_parse(char *cmd)
     
     if (strcmp(cmd, "go ahead") == 0)
     {
-       Car_Start();
+       targetspeed=2000;
     }
     else if (strcmp(cmd, "turn left") == 0)
     {
@@ -134,11 +142,12 @@ void bluetooth_cmd_parse(char *cmd)
     }
     else if (strcmp(cmd, "stop") == 0)
     {
-		Car_Stop();      
+		
+		targetspeed=0;
     }
 
     else if (strcmp(cmd, "go back") == 0)
     {
-		Car_back();
+		targetspeed=-2000;
     }
 }

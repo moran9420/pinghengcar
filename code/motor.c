@@ -21,11 +21,11 @@ float actualturn=0;
 
 #define MOTOR_R_PWM_PIN    TIM5_PWM_CH4_A3
 
-#define MOTOR_L_IN1_PIN    C0
-#define MOTOR_L_IN2_PIN    C1
+#define MOTOR_L_IN1_PIN    A0
+#define MOTOR_L_IN2_PIN    A2
 
-#define MOTOR_R_IN1_PIN    C2
-#define MOTOR_R_IN2_PIN    C3
+#define MOTOR_R_IN1_PIN    E9
+#define MOTOR_R_IN2_PIN    E8
 
 static void motor_set(int dir_pin, pwm_channel_enum pwm_pin, int speed)
 {
@@ -84,45 +84,48 @@ void motor_init(void)
 
 void motor_set_left(int speed)
 {
+	
     motor_set(MOTOR_L_IN1_PIN, MOTOR_L_PWM_PIN, speed);
 }
 
 void motor_set_right(int speed)
 {
+
     motor_set(MOTOR_R_IN1_PIN, MOTOR_R_PWM_PIN, speed);
+	
 }
 
-void motor_stop(void)
-{
-    pwm_set_duty(MOTOR_L_PWM_PIN, 0);
-    pwm_set_duty(MOTOR_R_PWM_PIN, 0);
-}
-void Car_Start(void)
-{
-   
-    if(targetangle > -2.0f)
-    {
-        targetangle -= 0.02f;
-        if(targetangle < -2.0f)
-            targetangle = -2.0f;
-    }
-}
-void Car_Stop(void)
-{	
-    if(targetangle < 0.0f)
-    {
-        targetangle += 0.03f;
-        if(targetangle > 0.0f)
-            targetangle = 0.0f;
-    }
-}
-void Car_back(void)
-{
-   
-    if(targetangle <2.0f)
-    {
-        targetangle += 0.02f;
-        if(targetangle >2.0f)
-            targetangle = 2.0f;
-    }
-}
+//void motor_stop(void)
+//{
+//    pwm_set_duty(MOTOR_L_PWM_PIN, 0);
+//    pwm_set_duty(MOTOR_R_PWM_PIN, 0);
+//}
+//void Car_Start(void)
+//{
+//   
+//    if(targetspeed < 2000)
+//    {
+//        targetspeed+=200;
+//        if(targetspeed < -2.0f)
+//            targetspeed= -2.0f;
+//    }
+//}
+//void Car_Stop(void)
+//{	
+//    if(targetangle < 0.0f)
+//    {
+//        targetangle += 0.03f;
+//        if(targetangle > 0.0f)
+//            targetangle = 0.0f;
+//    }
+//}
+//void Car_back(void)
+//{
+//   
+//    if(targetangle <2.0f)
+//    {
+//        targetangle += 0.02f;
+//        if(targetangle >2.0f)
+//            targetangle = 2.0f;
+//    }
+//}
